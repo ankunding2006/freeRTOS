@@ -50,21 +50,22 @@
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
-    .name = "defaultTask",
-    .stack_size = 128 * 4,
-    .priority = (osPriority_t)osPriorityNormal,
+  .name = "defaultTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for LED_spark */
 osThreadId_t LED_sparkHandle;
 const osThreadAttr_t LED_spark_attributes = {
-    .name = "LED_spark",
-    .stack_size = 128 * 4,
-    .priority = (osPriority_t)osPriorityRealtime5,
+  .name = "LED_spark",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityRealtime5,
 };
 /* Definitions for LED */
 osSemaphoreId_t LEDHandle;
 const osSemaphoreAttr_t LED_attributes = {
-    .name = "LED"};
+  .name = "LED"
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -77,12 +78,11 @@ void LED_onAndOff(void *argument);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /**
- * @brief  FreeRTOS initialization
- * @param  None
- * @retval None
- */
-void MX_FREERTOS_Init(void)
-{
+  * @brief  FreeRTOS initialization
+  * @param  None
+  * @retval None
+  */
+void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
   printf("FreeRTOS Init starting...\r\n");
   /* USER CODE END Init */
@@ -110,17 +110,18 @@ void MX_FREERTOS_Init(void)
   /* Create the thread(s) */
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
-  printf("Default task created\r\n");
 
   /* creation of LED_spark */
   LED_sparkHandle = osThreadNew(LED_onAndOff, NULL, &LED_spark_attributes);
-  printf("LED_spark task created\r\n");
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
-  printf("FreeRTOS Init completed\r\n");
+  /* USER CODE BEGIN RTOS_EVENTS */
+  /* add events, ... */
+  /* USER CODE END RTOS_EVENTS */
+
 }
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -176,3 +177,4 @@ void LED_onAndOff(void *argument)
 /* USER CODE BEGIN Application */
 
 /* USER CODE END Application */
+
