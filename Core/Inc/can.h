@@ -22,33 +22,45 @@
 #define __CAN_H__
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-  /* USER CODE BEGIN Includes */
+/* USER CODE BEGIN Includes */
 
-  /* USER CODE END Includes */
+/* USER CODE END Includes */
 
-  extern CAN_HandleTypeDef hcan1;
+extern CAN_HandleTypeDef hcan1;
 
-  /* USER CODE BEGIN Private defines */
+/* USER CODE BEGIN Private defines */
 
-  /* USER CODE END Private defines */
+/* USER CODE END Private defines */
 
-  void MX_CAN1_Init(void);
+void MX_CAN1_Init(void);
 
-  /* USER CODE BEGIN Prototypes */
+/* USER CODE BEGIN Prototypes */
+  typedef struct
+  {
+    __IO CAN_RxHeaderTypeDef CAN_RxMsg;
+    __IO uint8_t rxData[32];
+
+    __IO CAN_TxHeaderTypeDef CAN_TxMsg;
+    __IO uint8_t txData[32];
+
+    __IO bool rxFrameFlag;
+  } CAN_t;
   void CAN1_Transmit(uint32_t ID, uint8_t *Data);
+  void USER_CAN1_Filter_Init(void);
+  void can_SendCmd(__IO uint8_t *cmd, uint8_t len);
   extern uint8_t CAN1_Rx_data[8];
   extern uint8_t CAN2_Rx_data[8];
-  /* USER CODE END Prototypes */
+/* USER CODE END Prototypes */
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* __CAN_H__ */
+

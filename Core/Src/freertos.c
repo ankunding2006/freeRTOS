@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "Emm_V5.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -61,6 +61,13 @@ const osThreadAttr_t LED_spark_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityRealtime5,
 };
+/* Definitions for motor_test */
+osThreadId_t motor_testHandle;
+const osThreadAttr_t motor_test_attributes = {
+  .name = "motor_test",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal7,
+};
 /* Definitions for LED */
 osSemaphoreId_t LEDHandle;
 const osSemaphoreAttr_t LED_attributes = {
@@ -74,6 +81,7 @@ const osSemaphoreAttr_t LED_attributes = {
 
 void StartDefaultTask(void *argument);
 void LED_onAndOff(void *argument);
+void motor_test_Task(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -113,6 +121,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of LED_spark */
   LED_sparkHandle = osThreadNew(LED_onAndOff, NULL, &LED_spark_attributes);
+
+  /* creation of motor_test */
+  motor_testHandle = osThreadNew(motor_test_Task, NULL, &motor_test_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -171,6 +182,29 @@ void LED_onAndOff(void *argument)
     vTaskDelay(1000);
   }
   /* USER CODE END LED_onAndOff */
+}
+
+/* USER CODE BEGIN Header_motor_test_Task */
+/**
+* @brief Function implementing the motor_test thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_motor_test_Task */
+void motor_test_Task(void *argument)
+{
+  /* USER CODE BEGIN motor_test_Task */
+  /* Infinite loop */
+  for(;;)
+  {
+    //位置模式：方向CW，速度1000RPM，加速度0（不使用加减速直接启动），脉冲数3200（16细分下发送3200个脉冲电机转一圈），相对运动
+    Emm_V5_Pos_Control(1, 0, 1000, 0, 3200, 0, 0);
+    osDelay(1000);
+    //反方向旋转
+    Emm_V5_Pos_Control(1, 1, 1000, 0, 3200, 0, 0);
+    osDelay(1000);
+  }
+  /* USER CODE END motor_test_Task */
 }
 
 /* Private application code --------------------------------------------------*/
