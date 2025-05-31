@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "Emm_V5.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -197,12 +197,7 @@ void motor_test_Task(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    //位置模式：方向CW，速度1000RPM，加速度0（不使用加减速直接启动），脉冲数3200（16细分下发送3200个脉冲电机转一圈），相对运动
-    Emm_V5_Pos_Control(1, 0, 1000, 0, 3200, 0, 0);
-    osDelay(1000);
-    //反方向旋转
-    Emm_V5_Pos_Control(1, 1, 1000, 0, 3200, 0, 0);
-    osDelay(1000);
+
   }
   /* USER CODE END motor_test_Task */
 }

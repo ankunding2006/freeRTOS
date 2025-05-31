@@ -19,7 +19,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
-#include "can.h"
 #include "fatfs.h"
 #include "sdio.h"
 #include "spi.h"
@@ -115,10 +114,9 @@ int main(void)
   MX_SDIO_SD_Init();
   MX_FATFS_Init();
   MX_SPI1_Init();
-  MX_TIM2_Init();
-  MX_CAN1_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
   delay_init(168);
   usart_init(115200);
