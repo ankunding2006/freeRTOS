@@ -51,36 +51,39 @@ extern TIM_HandleTypeDef htim5;
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+    .name = "defaultTask",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal,
 };
 /* Definitions for LED_spark */
 osThreadId_t LED_sparkHandle;
 const osThreadAttr_t LED_spark_attributes = {
-  .name = "LED_spark",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityRealtime5,
+    .name = "LED_spark",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityRealtime5,
 };
 /* Definitions for motor_test */
 osThreadId_t motor_testHandle;
 const osThreadAttr_t motor_test_attributes = {
-  .name = "motor_test",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal7,
+    .name = "motor_test",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal7,
 };
 /* Definitions for get_print_PWM */
 osThreadId_t get_print_PWMHandle;
 const osThreadAttr_t get_print_PWM_attributes = {
-  .name = "get_print_PWM",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityRealtime3,
+    .name = "get_print_PWM",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityRealtime3,
 };
+/* Definitions for PWM_Value */
+osMessageQueueId_t PWM_ValueHandle;
+const osMessageQueueAttr_t PWM_Value_attributes = {
+    .name = "PWM_Value"};
 /* Definitions for LED */
 osSemaphoreId_t LEDHandle;
 const osSemaphoreAttr_t LED_attributes = {
-  .name = "LED"
-};
+    .name = "LED"};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -95,11 +98,12 @@ void get_and_print_PWM_Task(void *argument);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /**
-  * @brief  FreeRTOS initialization
-  * @param  None
-  * @retval None
-  */
-void MX_FREERTOS_Init(void) {
+ * @brief  FreeRTOS initialization
+ * @param  None
+ * @retval None
+ */
+void MX_FREERTOS_Init(void)
+{
   /* USER CODE BEGIN Init */
   printf("FreeRTOS Init starting...\r\n");
   /* USER CODE END Init */
@@ -119,6 +123,10 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
+
+  /* Create the queue(s) */
+  /* creation of PWM_Value */
+  PWM_ValueHandle = osMessageQueueNew(2, sizeof(uint16_t), &PWM_Value_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -144,7 +152,6 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
   /* USER CODE END RTOS_EVENTS */
-
 }
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -198,49 +205,53 @@ void LED_onAndOff(void *argument)
 
 /* USER CODE BEGIN Header_motor_test_Task */
 /**
-* @brief Function implementing the motor_test thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the motor_test thread.
+ * @param argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_motor_test_Task */
 void motor_test_Task(void *argument)
 {
   /* USER CODE BEGIN motor_test_Task */
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
-    //正转一圈后反方向旋转一圈
-    Emm_V5_Pos_Control(1,0,1000,100,3200,false,false); //正转
-    osDelay(1000);
-    Emm_V5_Pos_Control(1,1,1000,100,3200,false,false); //反转
-    osDelay(1000);
+    // 获取消息队列中的值
+    uint16_t pwm_value;
+    osMessageQueueGet(PWM_ValueHandle, &pwm_value, NULL, 3);
+    Emm_V5_Pos_Control(1, 0, 1000, 0, pwm_value*10, true, false); // 正转
+    osMessageQueueReset(PWM_ValueHandle); // 重置消息队列
+    osDelay(3);
   }
   /* USER CODE END motor_test_Task */
 }
 
 /* USER CODE BEGIN Header_get_and_print_PWM_Task */
 /**
-* @brief Function implementing the get_print_PWM thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the get_print_PWM thread.
+ * @param argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_get_and_print_PWM_Task */
 void get_and_print_PWM_Task(void *argument)
 {
   /* USER CODE BEGIN get_and_print_PWM_Task */
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
-    //读取TIM3的CCR2
+    // 读取TIM3的CCR2
     uint32_t pwm1_value = __HAL_TIM_GET_COMPARE(&htim3, TIM_CHANNEL_2);
-    //读取TIM5的CCR2
+    // 读取TIM5的CCR2
     uint32_t pwm2_value = __HAL_TIM_GET_COMPARE(&htim5, TIM_CHANNEL_2);
-    //打印PWM值
-    static uint16_t Print_count=0;
-    if(Print_count++ >= 100) //每100次打印一次
+    // 把这两个值放入消息队列中
+    osMessageQueuePut(PWM_ValueHandle, &pwm2_value, 0, 3);
+    osMessageQueuePut(PWM_ValueHandle, &pwm1_value, 0, 3);
+    // 打印PWM值
+    static uint16_t Print_count = 0;
+    if (Print_count++ >= 100) // 每100次打印一次
     {
       printf("PWM1 Value: %lu, PWM2 Value: %lu\r\n", pwm1_value, pwm2_value);
-      Print_count = 0; //重置计数器
+      Print_count = 0; // 重置计数器
     }
     osDelay(3);
   }
