@@ -105,7 +105,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
       HAL_NVIC_SetPriority(USART_UX_IRQn, 3, 3); /* 抢占优先级3，子优先级3 */
 #endif
     }
-    /* USER CODE END USART1_MspInit 1 */
+  /* USER CODE END USART1_MspInit 1 */
   }
 }
 

@@ -45,7 +45,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-
+extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim5;
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -68,6 +69,13 @@ const osThreadAttr_t motor_test_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal7,
 };
+/* Definitions for get_print_PWM */
+osThreadId_t get_print_PWMHandle;
+const osThreadAttr_t get_print_PWM_attributes = {
+  .name = "get_print_PWM",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityRealtime3,
+};
 /* Definitions for LED */
 osSemaphoreId_t LEDHandle;
 const osSemaphoreAttr_t LED_attributes = {
@@ -82,6 +90,7 @@ const osSemaphoreAttr_t LED_attributes = {
 void StartDefaultTask(void *argument);
 void LED_onAndOff(void *argument);
 void motor_test_Task(void *argument);
+void get_and_print_PWM_Task(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -124,6 +133,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of motor_test */
   motor_testHandle = osThreadNew(motor_test_Task, NULL, &motor_test_attributes);
+
+  /* creation of get_print_PWM */
+  get_print_PWMHandle = osThreadNew(get_and_print_PWM_Task, NULL, &get_print_PWM_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -202,8 +214,36 @@ void motor_test_Task(void *argument)
   /* USER CODE END motor_test_Task */
 }
 
+/* USER CODE BEGIN Header_get_and_print_PWM_Task */
+/**
+* @brief Function implementing the get_print_PWM thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_get_and_print_PWM_Task */
+void get_and_print_PWM_Task(void *argument)
+{
+  /* USER CODE BEGIN get_and_print_PWM_Task */
+  /* Infinite loop */
+  for(;;)
+  {
+    //读取TIM3的CCR2
+    uint32_t pwm1_value = __HAL_TIM_GET_COMPARE(&htim3, TIM_CHANNEL_2);
+    //读取TIM5的CCR2
+    uint32_t pwm2_value = __HAL_TIM_GET_COMPARE(&htim5, TIM_CHANNEL_2);
+    //打印PWM值
+    static uint16_t Print_count=0;
+    if(Print_count++ >= 100) //每100次打印一次
+    {
+      printf("PWM1 Value: %lu, PWM2 Value: %lu\r\n", pwm1_value, pwm2_value);
+      Print_count = 0; //重置计数器
+    }
+    osDelay(3);
+  }
+  /* USER CODE END get_and_print_PWM_Task */
+}
+
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
 
 /* USER CODE END Application */
-

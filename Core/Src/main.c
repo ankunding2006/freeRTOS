@@ -134,6 +134,10 @@ int main(void)
   lcd_set_font(&lcd_desc, FONT_3216, YELLOW, BLACK);
   Menu_Init();
   cotMenu_Task();
+  HAL_TIM_IC_Start(&htim3, TIM_CHANNEL_1);
+  HAL_TIM_IC_Start(&htim3, TIM_CHANNEL_2);
+  HAL_TIM_IC_Start(&htim5, TIM_CHANNEL_1);
+  HAL_TIM_IC_Start(&htim5, TIM_CHANNEL_2);
   Before_Main();
   /* USER CODE END 2 */
 
