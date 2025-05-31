@@ -60,7 +60,7 @@ osThreadId_t LED_sparkHandle;
 const osThreadAttr_t LED_spark_attributes = {
     .name = "LED_spark",
     .stack_size = 128 * 4,
-    .priority = (osPriority_t)osPriorityRealtime5,
+    .priority = (osPriority_t)osPriorityLow1,
 };
 /* Definitions for motor_test */
 osThreadId_t motor_testHandle;
@@ -88,10 +88,10 @@ const osMutexAttr_t motor_attributes = {
 osSemaphoreId_t LEDHandle;
 const osSemaphoreAttr_t LED_attributes = {
     .name = "LED"};
-/* Definitions for Is_PWM_Capture */
-osEventFlagsId_t Is_PWM_CaptureHandle;
-const osEventFlagsAttr_t Is_PWM_Capture_attributes = {
-    .name = "Is_PWM_Capture"};
+/* Definitions for PWM_Value_Status */
+osEventFlagsId_t PWM_Value_StatusHandle;
+const osEventFlagsAttr_t PWM_Value_Status_attributes = {
+    .name = "PWM_Value_Status"};
 /* Definitions for Is_motor_action_finish */
 osEventFlagsId_t Is_motor_action_finishHandle;
 const osEventFlagsAttr_t Is_motor_action_finish_attributes = {
@@ -164,14 +164,15 @@ void MX_FREERTOS_Init(void)
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
-  /* creation of Is_PWM_Capture */
-  Is_PWM_CaptureHandle = osEventFlagsNew(&Is_PWM_Capture_attributes);
+  /* creation of PWM_Value_Status */
+  PWM_Value_StatusHandle = osEventFlagsNew(&PWM_Value_Status_attributes);
 
   /* creation of Is_motor_action_finish */
   Is_motor_action_finishHandle = osEventFlagsNew(&Is_motor_action_finish_attributes);
 
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
+  osEventFlagsSet(Is_motor_action_finishHandle, PWM_Value_Processed); // 设置电机动作完成事件标志
   /* USER CODE END RTOS_EVENTS */
 }
 
@@ -237,12 +238,15 @@ void motor_test_Task(void *argument)
   /* Infinite loop */
   for (;;)
   {
+    osEventFlagsWait(PWM_Value_StatusHandle, PWM_Value_Captured, osFlagsWaitAny, osWaitForever); // 等待PWM值捕获事件
     // 获取消息队列中的值
-    uint16_t pwm_value;
-    osMessageQueueGet(PWM_ValueHandle, &pwm_value, NULL, 3);
-    osEventFlagsWait(Is_motor_action_finishHandle, 0x01, osFlagsWaitAll, 100);
-    Emm_V5_Pos_Control(1, 0, 1000, 0, pwm_value * 10, true, false); // 正转
-    osMessageQueueReset(PWM_ValueHandle);                           // 重置消息队列
+    uint16_t pwm1_value, pwm2_value;
+    osMessageQueueGet(PWM_ValueHandle, &pwm1_value, NULL, 3);
+    Emm_V5_Pos_Control(1, 0, 1000, 0, pwm1_value * 10, true, false); // 正转
+    osDelay(3);
+    osMessageQueueGet(PWM_ValueHandle, &pwm2_value, NULL, 3);
+    Emm_V5_Pos_Control(2, 0, 1000, 0, pwm2_value * 10, true, false);    // 正转
+    osEventFlagsSet(Is_motor_action_finishHandle, PWM_Value_Processed); // 设置电机动作完成事件标志
     osDelay(3);
   }
   /* USER CODE END motor_test_Task */
@@ -261,6 +265,8 @@ void get_and_print_PWM_Task(void *argument)
   /* Infinite loop */
   for (;;)
   {
+    // 等待处理完PWM_Value完成事件
+    osEventFlagsWait(Is_motor_action_finishHandle, PWM_Value_Processed, osFlagsWaitAny, osWaitForever);
     // 读取TIM3的CCR2
     uint32_t pwm1_value = __HAL_TIM_GET_COMPARE(&htim3, TIM_CHANNEL_2);
     // 读取TIM5的CCR2
@@ -275,7 +281,7 @@ void get_and_print_PWM_Task(void *argument)
       printf("PWM1 Value: %lu, PWM2 Value: %lu\r\n", pwm1_value, pwm2_value);
       Print_count = 0; // 重置计数器
     }
-    osDelay(3);
+    osEventFlagsSet(PWM_Value_StatusHandle, PWM_Value_Captured); // 设置PWM值状态事件标志
   }
   /* USER CODE END get_and_print_PWM_Task */
 }

@@ -82,6 +82,8 @@ void delay_us(uint32_t nus);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define PWM_Value_Captured 0x01
+#define PWM_Value_Processed 0x02
 #define LED1_Pin GPIO_PIN_0
 #define LED1_GPIO_Port GPIOC
 #define LED2_Pin GPIO_PIN_1
