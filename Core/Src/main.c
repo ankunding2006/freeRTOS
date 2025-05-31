@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "dma.h"
 #include "fatfs.h"
 #include "sdio.h"
 #include "spi.h"
@@ -112,6 +113,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_SDIO_SD_Init();
   MX_FATFS_Init();
   MX_SPI1_Init();
@@ -119,6 +121,7 @@ int main(void)
   MX_TIM4_Init();
   MX_TIM5_Init();
   MX_USART1_UART_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   delay_init(168);
   usart_init(115200);

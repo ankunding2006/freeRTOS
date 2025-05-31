@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "Emm_V5.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -209,7 +209,11 @@ void motor_test_Task(void *argument)
   /* Infinite loop */
   for(;;)
   {
-
+    //正转一圈后反方向旋转一圈
+    Emm_V5_Pos_Control(1,0,1000,100,3200,false,false); //正转
+    osDelay(1000);
+    Emm_V5_Pos_Control(1,1,1000,100,3200,false,false); //反转
+    osDelay(1000);
   }
   /* USER CODE END motor_test_Task */
 }
