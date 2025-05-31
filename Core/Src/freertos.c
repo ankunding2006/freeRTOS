@@ -80,10 +80,22 @@ const osThreadAttr_t get_print_PWM_attributes = {
 osMessageQueueId_t PWM_ValueHandle;
 const osMessageQueueAttr_t PWM_Value_attributes = {
     .name = "PWM_Value"};
+/* Definitions for motor */
+osMutexId_t motorHandle;
+const osMutexAttr_t motor_attributes = {
+    .name = "motor"};
 /* Definitions for LED */
 osSemaphoreId_t LEDHandle;
 const osSemaphoreAttr_t LED_attributes = {
     .name = "LED"};
+/* Definitions for Is_PWM_Capture */
+osEventFlagsId_t Is_PWM_CaptureHandle;
+const osEventFlagsAttr_t Is_PWM_Capture_attributes = {
+    .name = "Is_PWM_Capture"};
+/* Definitions for Is_motor_action_finish */
+osEventFlagsId_t Is_motor_action_finishHandle;
+const osEventFlagsAttr_t Is_motor_action_finish_attributes = {
+    .name = "Is_motor_action_finish"};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -107,6 +119,9 @@ void MX_FREERTOS_Init(void)
   /* USER CODE BEGIN Init */
   printf("FreeRTOS Init starting...\r\n");
   /* USER CODE END Init */
+  /* Create the mutex(es) */
+  /* creation of motor */
+  motorHandle = osMutexNew(&motor_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
@@ -148,6 +163,12 @@ void MX_FREERTOS_Init(void)
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
+
+  /* creation of Is_PWM_Capture */
+  Is_PWM_CaptureHandle = osEventFlagsNew(&Is_PWM_Capture_attributes);
+
+  /* creation of Is_motor_action_finish */
+  Is_motor_action_finishHandle = osEventFlagsNew(&Is_motor_action_finish_attributes);
 
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
@@ -219,8 +240,9 @@ void motor_test_Task(void *argument)
     // 获取消息队列中的值
     uint16_t pwm_value;
     osMessageQueueGet(PWM_ValueHandle, &pwm_value, NULL, 3);
-    Emm_V5_Pos_Control(1, 0, 1000, 0, pwm_value*10, true, false); // 正转
-    osMessageQueueReset(PWM_ValueHandle); // 重置消息队列
+    osEventFlagsWait(Is_motor_action_finishHandle, 0x01, osFlagsWaitAll, 100);
+    Emm_V5_Pos_Control(1, 0, 1000, 0, pwm_value * 10, true, false); // 正转
+    osMessageQueueReset(PWM_ValueHandle);                           // 重置消息队列
     osDelay(3);
   }
   /* USER CODE END motor_test_Task */

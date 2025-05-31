@@ -9,7 +9,7 @@
 ***	qq交流群：262438510
 **********************************************************/
 
-static uint8_t cmd[32] = {0}; // 命令储存缓冲区
+static uint8_t cmd[32] = {0};                         // 命令储存缓冲区
 
 /**
  * @brief    将当前位置清零
@@ -376,3 +376,7 @@ void Emm_V5_Origin_Interrupt(uint8_t addr)
   // 发送命令
   HAL_UART_Transmit_DMA(&huart2, (uint8_t *)cmd, 5);
 }
+
+/* USER CODE BEGIN 1 */
+
+/* USER CODE END 1 */

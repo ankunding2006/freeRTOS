@@ -141,6 +141,8 @@ int main(void)
   HAL_TIM_IC_Start(&htim3, TIM_CHANNEL_2);
   HAL_TIM_IC_Start(&htim5, TIM_CHANNEL_1);
   HAL_TIM_IC_Start(&htim5, TIM_CHANNEL_2);
+  __HAL_UART_CLEAR_IDLEFLAG(&huart2);          // 清除IDLE标志
+  __HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE); // 使能串UART1 IDLE中断
   Before_Main();
   /* USER CODE END 2 */
 
